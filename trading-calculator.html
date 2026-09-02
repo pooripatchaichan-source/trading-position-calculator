@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Position Size Calculator</title>
+<style>
+    :root {
+        --bg-color: #0d0d12;
+        --card-bg: #1a1a24;
+        --text-main: #f0f0f0;
+        --text-muted: #8b8b9e;
+        --accent-color: #00e676; /* Aggressive green */
+        --accent-hover: #00c853;
+        --danger-color: #ff1744;
+        --input-bg: #242433;
+        --border-color: #333346;
+    }
+    
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .calculator-container {
+        background-color: var(--card-bg);
+        border-radius: 16px;
+        padding: 35px 30px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(0, 230, 118, 0.05);
+        border: 1px solid var(--border-color);
+        position: relative;
+    }
+    
+    .header-container {
+        position: relative;
+        margin-bottom: 30px;
+        text-align: center;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 15px;
+    }
+    
+    h2 {
+        color: var(--text-main);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    h2 span {
+        color: var(--accent-color);
+    }
+    
+    .lang-btn {
+        position: absolute;
+        top: -5px;
+        right: 0;
+        background: rgba(0, 230, 118, 0.1);
+        color: var(--accent-color);
+        border: 1px solid var(--accent-color);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+    
+    .lang-btn:hover {
+        background: var(--accent-color);
+        color: #000;
+    }
+    
+    .form-group {
+        margin-bottom: 22px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+    
+    input[type="number"] {
+        width: 100%;
+        padding: 14px 16px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-main);
+        font-size: 1.1rem;
+        font-weight: 600;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+    
+    input[type="number"]:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2);
+    }
+    
+    input[type="number"]::placeholder {
+        color: #4a4a5e;
+        font-weight: 400;
+    }
+    
+    .slider-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: var(--input-bg);
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+    
+    input[type="range"] {
+        flex-grow: 1;
+        margin-right: 15px;
+        accent-color: var(--accent-color);
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+        appearance: none;
+        outline: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent-color);
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+    
+    #risk-value {
+        font-weight: 700;
+        color: var(--accent-color);
+        min-width: 45px;
+        text-align: right;
+        font-size: 1.1rem;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 35px;
+    }
+    
+    button {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+    
+    #calc-btn {
+        background-color: var(--accent-color);
+        color: #000;
+        flex: 2;
+    }
+    
+    #calc-btn:hover {
+        background-color: var(--accent-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 230, 118, 0.3);
+    }
+    
+    #calc-btn:active {
+        transform: translateY(0);
+    }
+    
+    #reset-btn {
+        background-color: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
+    }
+    
+    #reset-btn:hover {
+        color: var(--text-main);
+        border-color: var(--text-muted);
+        background-color: rgba(255,255,255,0.03);
+    }
+    
+    .results {
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 2px dashed var(--border-color);
+        display: none;
+        animation: fadeIn 0.4s ease forwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .result-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        background-color: rgba(0, 230, 118, 0.05);
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid var(--accent-color);
+    }
+    
+    .result-label {
+        font-size: 1rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+    
+    .result-value {
+        font-weight: 800; /* Bold */
+        color: #39ff14; /* Neon Green */
+        font-size: 1.3rem;
+        text-shadow: 0 0 8px rgba(57, 255, 20, 0.4); /* ให้ดูสว่างขึ้นอีกนิด */
+    }
+    
+    .result-value.highlight {
+        color: #39ff14;
+    }
+    
+    .error-msg {
+        color: var(--danger-color);
+        font-size: 0.85rem;
+        margin-top: 8px;
+        display: none;
+        font-weight: 500;
+    }
+    
+    .history-section {
+        margin-top: 25px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 20px;
+    }
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .history-header h3 {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+    .clear-btn {
+        background: transparent;
+        color: var(--danger-color);
+        border: none;
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 5px 10px;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+    .clear-btn:hover {
+        text-decoration: underline;
+        color: #ff4d6d;
+        background: transparent;
+        transform: none;
+        box-shadow: none;
+    }
+    .history-list {
+        list-style: none;
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    .history-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .history-list::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+    .history-list li {
+        background-color: var(--input-bg);
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        border-left: 4px solid var(--border-color);
+        transition: border-color 0.3s ease;
+    }
+    .history-list li:hover {
+        border-left-color: var(--accent-color);
+    }
+    .history-summary {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+    .history-detail {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+    
+    /* Responsive ให้รองรับมือถือ */
+    @media (max-width: 480px) {
+        .calculator-container {
+            padding: 25px 20px;
+        }
+        
+        h2 {
+            font-size: 1.2rem;
+        }
+
+        input[type="number"],
+        .slider-container,
+        button:not(.clear-btn):not(.lang-btn) {
+            height: 44px;
+            width: 100%;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        input[type="number"] {
+            line-height: 44px;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .button-group {
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        #calc-btn {
+            order: -1;
+        }
+        
+        .lang-btn {
+            position: relative;
+            top: 0;
+            display: inline-block;
+            margin-bottom: 15px;
+            width: auto;
+            height: auto;
+        }
+        .header-container {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="calculator-container">
+    <div class="header-container">
+        <h2 data-i18n="title">Position <span>Size</span></h2>
+        <button id="lang-btn" class="lang-btn">EN ⇄ TH</button>
+    </div>
+    
+    <div class="form-group">
+        <label for="balance" data-i18n="balanceLabel">Account Balance ($)</label>
+        <input type="number" id="balance" placeholder="e.g. 10000" min="0" step="any" required>
+        <div class="error-msg" id="balance-error" data-i18n="balanceError">Please enter a valid balance greater than 0.</div>
+    </div>
+    
+    <div class="form-group">
+        <label for="stoploss" data-i18n="slLabel">Stop Loss (Pips)</label>
+        <input type="number" id="stoploss" placeholder="e.g. 50" min="0" step="any" required>
+        <div class="error-msg" id="stoploss-error" data-i18n="slError">Please enter a valid stop loss greater than 0.</div>
+    </div>
+    
+    <div class="form-group">
+        <label for="risk" data-i18n="riskLabel">Risk Percentage (%)</label>
+        <div class="slider-container">
+            <input type="range" id="risk" min="1" max="5" value="1" step="0.5">
+            <span id="risk-value">1.0%</span>
+        </div>
+    </div>
+    
+    <div class="button-group">
+        <button id="reset-btn" data-i18n="resetBtn">Reset</button>
+        <button id="calc-btn" data-i18n="calcBtn">Calculate</button>
+    </div>
+    
+    <div class="results" id="results-panel">
+        <div class="result-item">
+            <span class="result-label" data-i18n="riskAmountLabel">Risk Amount:</span>
+            <span class="result-value" id="res-risk-amount">$0.00</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label" data-i18n="positionSizeLabel">Position Size:</span>
+            <span class="result-value highlight" id="res-position-size">0.00 Lots</span>
+        </div>
+    </div>
+    
+    <div class="history-section" id="history-section" style="display: none;">
+        <div class="history-header">
+            <h3 data-i18n="historyTitle">History</h3>
+            <button id="clear-history-btn" class="clear-btn" data-i18n="clearAllBtn">Clear All</button>
+        </div>
+        <ul id="history-list" class="history-list"></ul>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const balanceInput = document.getElementById('balance');
+        const stoplossInput = document.getElementById('stoploss');
+        const riskSlider = document.getElementById('risk');
+        const riskValueDisplay = document.getElementById('risk-value');
+        const calcBtn = document.getElementById('calc-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const resultsPanel = document.getElementById('results-panel');
+        const resRiskAmount = document.getElementById('res-risk-amount');
+        const resPositionSize = document.getElementById('res-position-size');
+        const balanceError = document.getElementById('balance-error');
+        const stoplossError = document.getElementById('stoploss-error');
+        const langBtn = document.getElementById('lang-btn');
+
+        // Translations Dictionary
+        let currentLang = 'en';
+        const translations = {
+            en: {
+                title: 'Position <span>Size</span>',
+                balanceLabel: 'Account Balance ($)',
+                balanceError: 'Please enter a valid balance greater than 0.',
+                slLabel: 'Stop Loss (Pips)',
+                slError: 'Please enter a valid stop loss greater than 0.',
+                riskLabel: 'Risk Percentage (%)',
+                resetBtn: 'Reset',
+                calcBtn: 'Calculate',
+                riskAmountLabel: 'Risk Amount:',
+                positionSizeLabel: 'Position Size:',
+                historyTitle: 'History',
+                clearAllBtn: 'Clear All',
+                alertInvalid: 'Please enter valid numbers',
+                balancePlaceholder: 'e.g. 10000',
+                slPlaceholder: 'e.g. 50'
+            },
+            th: {
+                title: 'คำนวณ <span>Lot Size</span>',
+                balanceLabel: 'ยอดเงินบัญชี ($)',
+                balanceError: 'กรุณากรอกยอดเงินให้ถูกต้อง (มากกว่า 0)',
+                slLabel: 'จุดตัดขาดทุน (Pips)',
+                slError: 'กรุณากรอกจุดตัดขาดทุนให้ถูกต้อง (มากกว่า 0)',
+                riskLabel: 'ความเสี่ยง (%)',
+                resetBtn: 'ล้างค่า',
+                calcBtn: 'คำนวณ',
+                riskAmountLabel: 'จำนวนเงินที่เสี่ยง:',
+                positionSizeLabel: 'ขนาด Lot:',
+                historyTitle: 'ประวัติ',
+                clearAllBtn: 'ลบประวัติทั้งหมด',
+                alertInvalid: 'กรุณากรอกตัวเลขให้ถูกต้อง',
+                balancePlaceholder: 'เช่น 10000',
+                slPlaceholder: 'เช่น 50'
+            }
+        };
+
+        const alertInvalidText = () => translations[currentLang].alertInvalid;
+
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerHTML = translations[currentLang][key];
+                }
+            });
+            balanceInput.placeholder = translations[currentLang].balancePlaceholder;
+            stoplossInput.placeholder = translations[currentLang].slPlaceholder;
+        }
+
+        langBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'en' ? 'th' : 'en';
+            updateLanguage();
+        });
+
+        // Update slider value display
+        riskSlider.addEventListener('input', function() {
+            riskValueDisplay.textContent = parseFloat(this.value).toFixed(1) + '%';
+        });
+
+        // Calculate functionality
+        calcBtn.addEventListener('click', function() {
+            // Reset error states
+            balanceError.style.display = 'none';
+            stoplossError.style.display = 'none';
+            balanceInput.style.borderColor = '';
+            stoplossInput.style.borderColor = '';
+            
+            const balance = parseFloat(balanceInput.value);
+            const stoploss = parseFloat(stoplossInput.value);
+            const riskPercent = parseFloat(riskSlider.value);
+            
+            let isValid = true;
+            
+            // Validate Balance
+            if (isNaN(balance) || balance <= 0) {
+                balanceError.style.display = 'block';
+                balanceInput.style.borderColor = 'var(--danger-color)';
+                isValid = false;
+            }
+            
+            // Validate Stop Loss
+            if (isNaN(stoploss) || stoploss <= 0) {
+                stoplossError.style.display = 'block';
+                stoplossInput.style.borderColor = 'var(--danger-color)';
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                alert(alertInvalidText());
+                resultsPanel.style.display = 'none';
+                return;
+            }
+            
+            // Core Calculation Logic
+            const riskAmount = balance * (riskPercent / 100);
+            const pipValue = 10;
+            const positionSize = riskAmount / (stoploss * pipValue);
+            
+            // Update UI
+            const currencyFormatter = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            resRiskAmount.textContent = currencyFormatter.format(riskAmount);
+            resPositionSize.textContent = positionSize.toFixed(2) + ' Lots';
+            
+            resultsPanel.style.display = 'block';
+
+            // Add to history
+            const historyItem = document.createElement('li');
+            historyItem.innerHTML = `
+                <div class="history-summary">
+                    <span>${positionSize.toFixed(2)} Lots</span>
+                    <span style="color: var(--accent-color);">${currencyFormatter.format(riskAmount)}</span>
+                </div>
+                <div class="history-detail">
+                    Bal: $${balance} | SL: ${stoploss} | Risk: ${riskPercent}%
+                </div>
+            `;
+            const historyList = document.getElementById('history-list');
+            historyList.insertBefore(historyItem, historyList.firstChild);
+            document.getElementById('history-section').style.display = 'block';
+        });
+
+        // Clear history functionality
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
+        clearHistoryBtn.addEventListener('click', function() {
+            document.getElementById('history-list').innerHTML = '';
+            document.getElementById('history-section').style.display = 'none';
+        });
+
+        // Reset functionality
+        resetBtn.addEventListener('click', function() {
+            balanceInput.value = '';
+            stoplossInput.value = '';
+            riskSlider.value = '1';
+            riskValueDisplay.textContent = '1.0%';
+            balanceError.style.display = 'none';
+            stoplossError.style.display = 'none';
+            balanceInput.style.borderColor = '';
+            stoplossInput.style.borderColor = '';
+            resultsPanel.style.display = 'none';
+        });
+        
+        // Add event listeners for enter key
+        [balanceInput, stoplossInput].forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calcBtn.click();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
